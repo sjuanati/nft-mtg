@@ -7,18 +7,14 @@ const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 contract('MTG', (accounts) => {
     let mtg, nft;
     const [owner, user1] = accounts;
-    const text = web3.utils.fromAscii('The Abyss');
+    const text = web3.utils.fromAscii('The Abyss'); // 0x546865204162797373
 
     beforeEach(async () => {
-        // Create contracts
-        //nft = await NFT.new('https://testing.com', { from: owner });
-        // mtg = await MTG.new(nft.address, { from: owner });
         mtg = await MTG.new({ from: owner });
+        await mtg.create('https://testing.com', { from: owner });
     });
 
     it('should create NFT', async () => {
-        await mtg.create('https://testing.com', { from: owner });
-
         const balance = await mtg.balanceOf(owner, 1);
         const uri = await mtg.uri(1);
 
@@ -26,35 +22,29 @@ contract('MTG', (accounts) => {
         assert(uri === 'https://testing.com')
     });
 
-    it.only('should mint tokens', async () => {
-        await mtg.create('https://testing.com', { from: owner });
-
+    it('should mint tokens', async () => {
         const initialBalance = await mtg.balanceOf(owner, 1);
-        console.log('initialBalance', initialBalance.toNumber());
-        const uri = await mtg.uri(1);
-        console.log('uri:', uri);
-        console.log('text', text);
-        //console.log('mtg.address', mtg.address)
-        //await mtg.mint(owner, 1, 100, text, { from: owner });
+        await mtg.mint(owner, 1, 100, text, { from: owner });
+        const finalBalance = await mtg.balanceOf(owner, 1);
 
-
-        // const nftAddress = await mtg.tokens.call(1);
-        // console.log('nft:', nftAddress);
-
-        //await mtg.mint(owner, 1, 100, text, { from: owner });
-        // const finalBalance = await mtg.balanceOf(owner, 1);
-
-        // assert(initialBalance.toNumber() === 0);
-        // assert(finalBalance.toNumber() === 100);
+        assert(initialBalance.toNumber() === 0);
+        assert(finalBalance.toNumber() === 100);
     });
 
     it('should not mint tokens - caller is not the owner', async () => {
         await expectRevert(
-            nft.mint(user1, 1, 100, text, { from: user1 }),
+            mtg.mint(user1, 1, 100, text, { from: user1 }),
             'Ownable: caller is not the owner -- Reason given: Ownable: caller is not the owner.'
         );
     });
 
+    it('should not mint tokens - token does not exist', async () => {
+        await expectRevert(
+            mtg.mint(owner, 4, 100, text, { from: owner }),
+            'token does not exist'
+        );
+    });
+/*
     it('should transfer tokens', async () => {
         await nft.mint(owner, 1, 100, text, { from: owner });
 
@@ -81,7 +71,7 @@ contract('MTG', (accounts) => {
             'ERC1155: caller is not owner nor approved -- Reason given: ERC1155: caller is not owner nor approved.'
         );
     });
-
+*/
 
 
 });

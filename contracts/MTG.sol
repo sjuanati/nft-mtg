@@ -14,7 +14,7 @@ contract MTG is Ownable {
 
     mapping(uint256 => NFT) public tokens;
 
-    function create(string memory _uri) external /*onlyOwner()*/ {
+    function create(string memory _uri) external onlyOwner() {
         tokens[id] = new NFT(_uri);
         id += 1;
     }
@@ -24,7 +24,7 @@ contract MTG is Ownable {
         uint256 _id,
         uint256 amount,
         bytes memory data
-    ) external /*onlyOwner()*/ {
+    ) external onlyOwner() {
         require(address(tokens[_id]) != address(0), 'token does not exist');
         tokens[_id].mint(account, _id, amount, data);
     }
