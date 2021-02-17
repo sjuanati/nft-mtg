@@ -31,28 +31,52 @@ contract('MTG', (accounts) => {
         assert(finalBalance.toNumber() === 100);
     });
 
-    it('should not mint tokens - caller is not the owner', async () => {
+    it('should NOT mint tokens - caller is not the owner', async () => {
         await expectRevert(
             mtg.mint(user1, 1, 100, text, { from: user1 }),
             'Ownable: caller is not the owner -- Reason given: Ownable: caller is not the owner.'
         );
     });
 
-    it('should not mint tokens - token does not exist', async () => {
+    it('should NOT mint tokens - token does not exist', async () => {
         await expectRevert(
             mtg.mint(owner, 4, 100, text, { from: owner }),
             'token does not exist'
         );
     });
-/*
+
+    it('should approve for all', async () => {
+        const addressNFT =  await mtg.addressOf(1);
+        const nft = await NFT.at(addressNFT);
+
+        await mtg.mint(owner, 1, 100, text, { from: owner });
+        await nft.setApprovalForAll(user1, true, {from: owner});
+        const result = await nft.isApprovedForAll(owner, user1);
+
+        assert(result === true);
+    });
+
+    it('should NOT approve for all - self approval', async () => {
+        const addressNFT =  await mtg.addressOf(1);
+        const nft = await NFT.at(addressNFT);
+        await mtg.mint(owner, 1, 100, text, { from: owner });
+    
+        await expectRevert(
+            nft.setApprovalForAll(owner, true, {from: owner}),
+            'ERC1155: setting approval status for self'
+        );
+    });
+
     it('should transfer tokens', async () => {
-        await nft.mint(owner, 1, 100, text, { from: owner });
+        const addressNFT =  await mtg.addressOf(1);
+        const nft = await NFT.at(addressNFT);
+        await mtg.mint(owner, 1, 100, text, { from: owner });
 
         const initialBalanceOwner = await mtg.balanceOf(owner, 1);
         const initialBalanceUser = await mtg.balanceOf(user1, 1);
 
-        await nft.setApprovalForAll(mtg.address, true, { from: owner });
-        await mtg.transfer(owner, user1, 1, 30, text, { from: owner });
+        await nft.setApprovalForAll(user1, true, {from: owner}),
+        await nft.safeTransferFrom(owner, user1, 1, 30, text, { from: owner });
 
         const finalBalanceOwner = await mtg.balanceOf(owner, 1);
         const finallBalanceUser = await mtg.balanceOf(user1, 1);
@@ -63,15 +87,40 @@ contract('MTG', (accounts) => {
         assert(finallBalanceUser.toNumber() === 30);
     });
 
-    it('should not transfer tokens - no approval', async() => {
-        await nft.mint(owner, 1, 100, text, { from: owner });
+    // Remark: owner can transfer tokens without approval
+    it('should NOT transfer tokens - no approval', async() => {
+        const addressNFT =  await mtg.addressOf(1);
+        const nft = await NFT.at(addressNFT);
+        await mtg.mint(owner, 1, 100, text, { from: owner });
 
         await expectRevert(
-            mtg.transfer(owner, user1, 1, 30, text, { from: owner }),
-            'ERC1155: caller is not owner nor approved -- Reason given: ERC1155: caller is not owner nor approved.'
+            nft.safeTransferFrom(owner, user1, 1, 30, text, { from: user1 }),
+            'ERC1155: caller is not owner nor approved'
         );
     });
-*/
+
+    it('should NOT transfer tokens - zero address', async() => {
+        const addressNFT =  await mtg.addressOf(1);
+        const nft = await NFT.at(addressNFT);
+        await mtg.mint(user1, 1, 100, text, { from: owner });
+
+        await expectRevert(
+            nft.safeTransferFrom(user1, ZERO_ADDRESS, 1, 30, text, { from: owner }),
+            'ERC1155: transfer to the zero address'
+        );
+    });
+
+    it('should NOT transfer tokens - insufficient balance', async() => {
+        const addressNFT =  await mtg.addressOf(1);
+        const nft = await NFT.at(addressNFT);
+        await mtg.mint(user1, 1, 100, text, { from: owner });
+
+        await expectRevert(
+            nft.safeTransferFrom(owner, user1, 1, 200, text, { from: owner }),
+            'ERC1155: insufficient balance for transfer'
+        );
+    });
+
 
 
 });

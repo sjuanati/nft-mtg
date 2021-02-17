@@ -9,7 +9,6 @@ import "./ERC1155/access/Ownable.sol";
  * @notice  tbc
  */
 contract MTG is Ownable {
-    NFT public token;
     uint256 id = 1;
 
     mapping(uint256 => NFT) public tokens;
@@ -25,10 +24,10 @@ contract MTG is Ownable {
         uint256 amount,
         bytes memory data
     ) external onlyOwner() {
-        require(address(tokens[_id]) != address(0), 'token does not exist');
+        require(address(tokens[_id]) != address(0), "token does not exist");
         tokens[_id].mint(account, _id, amount, data);
     }
-    
+
     function uri(uint256 _id) external view returns (string memory) {
         return tokens[_id].uri(_id);
     }
@@ -41,14 +40,15 @@ contract MTG is Ownable {
         return tokens[_id].balanceOf(account, _id);
     }
 
-    function transfer(
-        address from,
-        address to,
-        uint256 _id,
-        uint256 amount,
-        bytes memory data
-    ) external {
-        tokens[_id].safeTransferFrom(from, to, _id, amount, data);
+    function addressOf(uint256 _id) external view returns (address) {
+        return address(tokens[_id]);
+    }
+
+    function isApproved(
+        address account,
+        address operator,
+        uint256 _id
+    ) external view returns (bool) {
+        return tokens[_id].isApprovedForAll(account, operator);
     }
 }
-
