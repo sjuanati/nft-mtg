@@ -4,6 +4,9 @@ pragma solidity 0.8.1;
 import "./NFT.sol";
 import "./ERC1155/access/Ownable.sol";
 
+//TODO:
+// Save IPFS hash in mapping(uint256 => uint8) hashes to prevent issuing tokens mapped to previous hashes
+
 /**
  * @title   Magic The Gathering
  * @notice  tbc

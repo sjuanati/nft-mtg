@@ -11,7 +11,7 @@ contract('MTG', (accounts) => {
 
     beforeEach(async () => {
         mtg = await MTG.new({ from: owner });
-        await mtg.create('https://testing.com', { from: owner });
+        await mtg.create('https://gateway.pinata.cloud/ipfs/QmdsPpTrrWK6256Xpwa9TfbXWo1g3Q6PSYs1jVSQqKSmTS', { from: owner });
     });
 
     it('should create NFT', async () => {
@@ -19,7 +19,7 @@ contract('MTG', (accounts) => {
         const uri = await mtg.uri(1);
 
         assert(balance.toNumber() === 0);
-        assert(uri === 'https://testing.com')
+        assert(uri === 'https://gateway.pinata.cloud/ipfs/QmdsPpTrrWK6256Xpwa9TfbXWo1g3Q6PSYs1jVSQqKSmTS')
     });
 
     it('should mint tokens', async () => {
