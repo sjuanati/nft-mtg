@@ -32,8 +32,15 @@ contract('MTG', (accounts) => {
     });
 
     it('should NOT mint tokens - caller is not the owner', async () => {
+        const addressNFT =  await mtg.addressOf(1);
+        const nft = await NFT.at(addressNFT);
+
         await expectRevert(
             mtg.mint(user1, 1, 100, text, { from: user1 }),
+            'Ownable: caller is not the owner -- Reason given: Ownable: caller is not the owner.'
+        );
+        await expectRevert(
+            nft.mint(user1, 1, 100, text, { from: user1 }),
             'Ownable: caller is not the owner -- Reason given: Ownable: caller is not the owner.'
         );
     });
@@ -121,6 +128,8 @@ contract('MTG', (accounts) => {
         );
     });
 
-
+    //Test to send ERC1155 tokens to MTG, and they should be lost
+    // Add EIP-165 to prevent stuck tokens in contracts
 
 });
+

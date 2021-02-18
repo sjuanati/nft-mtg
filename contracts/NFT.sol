@@ -13,7 +13,7 @@ contract NFT is ERC1155, Ownable {
         uint256 id,
         uint256 amount,
         bytes memory data
-    ) public /*onlyOwner()*/ {
+    ) public onlyOwner() {
         _mint(account, id, amount, data);
     }
 }
