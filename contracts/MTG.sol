@@ -9,7 +9,7 @@ import "./ERC1155/access/Ownable.sol";
 
 /**
  * @title   Magic The Gathering
- * @notice  tbc
+ * @notice  Factory contract to manage ERC1155-based tokens
  */
 contract MTG is Ownable {
     uint256 id = 1;

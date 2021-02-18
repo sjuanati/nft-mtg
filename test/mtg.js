@@ -1,11 +1,12 @@
 const { expectRevert } = require('@openzeppelin/test-helpers');
 const MTG = artifacts.require('MTG.sol');
 const NFT = artifacts.require('NFT.sol');
+const RECEIVER = artifacts.require('Receiver.sol');
 
 const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 contract('MTG', (accounts) => {
-    let mtg, nft;
+    let mtg;
     const [owner, user1] = accounts;
     const text = web3.utils.fromAscii('The Abyss'); // 0x546865204162797373
 
@@ -40,7 +41,7 @@ contract('MTG', (accounts) => {
             'Ownable: caller is not the owner -- Reason given: Ownable: caller is not the owner.'
         );
         await expectRevert(
-            nft.mint(user1, 1, 100, text, { from: user1 }),
+            nft.mint(owner, 1, 100, text, { from: owner }),
             'Ownable: caller is not the owner -- Reason given: Ownable: caller is not the owner.'
         );
     });
@@ -74,7 +75,7 @@ contract('MTG', (accounts) => {
         );
     });
 
-    it('should transfer tokens', async () => {
+    it('should transfer tokens to user', async () => {
         const addressNFT =  await mtg.addressOf(1);
         const nft = await NFT.at(addressNFT);
         await mtg.mint(owner, 1, 100, text, { from: owner });
@@ -82,7 +83,7 @@ contract('MTG', (accounts) => {
         const initialBalanceOwner = await mtg.balanceOf(owner, 1);
         const initialBalanceUser = await mtg.balanceOf(user1, 1);
 
-        await nft.setApprovalForAll(user1, true, {from: owner}),
+        await nft.setApprovalForAll(user1, true, {from: owner});
         await nft.safeTransferFrom(owner, user1, 1, 30, text, { from: owner });
 
         const finalBalanceOwner = await mtg.balanceOf(owner, 1);
@@ -95,7 +96,7 @@ contract('MTG', (accounts) => {
     });
 
     // Remark: owner can transfer tokens without approval
-    it('should NOT transfer tokens - no approval', async() => {
+    it('should NOT transfer tokens to user - no approval', async() => {
         const addressNFT =  await mtg.addressOf(1);
         const nft = await NFT.at(addressNFT);
         await mtg.mint(owner, 1, 100, text, { from: owner });
@@ -106,7 +107,7 @@ contract('MTG', (accounts) => {
         );
     });
 
-    it('should NOT transfer tokens - zero address', async() => {
+    it('should NOT transfer tokens user - zero address', async() => {
         const addressNFT =  await mtg.addressOf(1);
         const nft = await NFT.at(addressNFT);
         await mtg.mint(user1, 1, 100, text, { from: owner });
@@ -117,7 +118,7 @@ contract('MTG', (accounts) => {
         );
     });
 
-    it('should NOT transfer tokens - insufficient balance', async() => {
+    it('should NOT transfer tokens user - insufficient balance', async() => {
         const addressNFT =  await mtg.addressOf(1);
         const nft = await NFT.at(addressNFT);
         await mtg.mint(user1, 1, 100, text, { from: owner });
@@ -128,8 +129,43 @@ contract('MTG', (accounts) => {
         );
     });
 
-    //Test to send ERC1155 tokens to MTG, and they should be lost
+    // Test to send ERC1155 tokens to MTG, and they should be lost
     // Add EIP-165 to prevent stuck tokens in contracts
 
+    it.only('should transfer tokens to contract', async () => {
+        const receiver = await RECEIVER.new({ from: owner });
+        const addressReceiver = receiver.address;
+        const addressNFT =  await mtg.addressOf(1);
+        const nft = await NFT.at(addressNFT);
+        await mtg.mint(owner, 1, 100, text, { from: owner });
+
+        const initialBalanceOwner = await mtg.balanceOf(owner, 1);
+        const initialBalanceContract = await mtg.balanceOf(addressReceiver, 1);
+
+        await nft.setApprovalForAll(addressReceiver, true, {from: owner});
+        await nft.safeTransferFrom(owner, addressReceiver, 1, 30, text, { from: owner });
+
+        const finalBalanceOwner = await mtg.balanceOf(owner, 1);
+        const finalBalanceContract = await mtg.balanceOf(addressReceiver, 1);
+
+
+        assert(initialBalanceOwner.toNumber() === 100);
+        assert(initialBalanceContract.toNumber() === 0);
+        assert(finalBalanceOwner.toNumber() === 70);
+        assert(finalBalanceContract.toNumber() === 30);
+    });
+
+    it('should NOT transfer tokens to contract - Non ERC1155Receiver contract', async () => {
+        const addressNFT =  await mtg.addressOf(1);
+        const nft = await NFT.at(addressNFT);
+
+        await mtg.mint(owner, 1, 100, text, { from: owner });
+        await nft.setApprovalForAll(mtg.address, true, {from: owner});
+
+        await expectRevert(
+            nft.safeTransferFrom(owner, mtg.address, 1, 30, text, { from: owner }),
+            'ERC1155: transfer to non ERC1155Receiver implementer'
+        );
+    });
 });
 
