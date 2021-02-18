@@ -167,5 +167,8 @@ contract('MTG', (accounts) => {
             'ERC1155: transfer to non ERC1155Receiver implementer'
         );
     });
+
+    // PAUSABLE
+    
 });
 
