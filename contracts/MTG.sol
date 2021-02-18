@@ -88,4 +88,18 @@ contract MTG is Ownable {
     ) external view returns (bool) {
         return tokens[_id].isApprovedForAll(owner, operator);
     }
+
+    // Pause
+    function pause(uint256 _id) external onlyOwner() {
+        tokens[_id].pause();
+    }
+
+    // Unpause
+    function unpause(uint256 _id) external onlyOwner() {
+        tokens[_id].unpause();
+    }
+
+    function isPaused(uint256 _id) external view returns (bool) {
+        return tokens[_id].paused();
+    }
 }

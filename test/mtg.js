@@ -107,7 +107,7 @@ contract('MTG', (accounts) => {
         );
     });
 
-    it('should NOT transfer tokens user - zero address', async() => {
+    it('should NOT transfer tokens to user - zero address', async() => {
         const addressNFT =  await mtg.addressOf(1);
         const nft = await NFT.at(addressNFT);
         await mtg.mint(user1, 1, 100, text, { from: owner });
@@ -118,7 +118,7 @@ contract('MTG', (accounts) => {
         );
     });
 
-    it('should NOT transfer tokens user - insufficient balance', async() => {
+    it('should NOT transfer tokens to user - insufficient balance', async() => {
         const addressNFT =  await mtg.addressOf(1);
         const nft = await NFT.at(addressNFT);
         await mtg.mint(user1, 1, 100, text, { from: owner });
@@ -129,10 +129,23 @@ contract('MTG', (accounts) => {
         );
     });
 
+    it('should NOT transfer tokens to user - contract paused', async () => {
+        const addressNFT =  await mtg.addressOf(1);
+        const nft = await NFT.at(addressNFT);
+        await mtg.mint(owner, 1, 100, text, { from: owner });
+
+        await nft.setApprovalForAll(user1, true, {from: owner});
+        await mtg.pause(1);
+        await expectRevert(
+            nft.safeTransferFrom(owner, user1, 1, 30, text, { from: owner }),
+            'ERC1155Pausable: token transfer while paused'
+        );
+    });
+
     // Test to send ERC1155 tokens to MTG, and they should be lost
     // Add EIP-165 to prevent stuck tokens in contracts
 
-    it.only('should transfer tokens to contract', async () => {
+    it('should transfer tokens to contract', async () => {
         const receiver = await RECEIVER.new({ from: owner });
         const addressReceiver = receiver.address;
         const addressNFT =  await mtg.addressOf(1);

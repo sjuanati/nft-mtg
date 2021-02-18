@@ -2,15 +2,17 @@
 pragma solidity 0.8.1;
 
 import "./ERC1155/token/ERC1155.sol";
+import "./ERC1155/token/ERC1155Pausable.sol";
 import "./ERC1155/access/Ownable.sol";
 
 /**
  * @title   NFT (Non Fungible Tokens)
  * @notice  ERC1155 contract based on OpenZeppelin implementation
  */
-contract NFT is ERC1155, Ownable {
+/*ERC1155,*/
+contract NFT is ERC1155Pausable, Ownable {
     constructor(string memory _uri) ERC1155(_uri) {}
-    
+
     /**
      * @notice  Creates `amount` tokens of token type `id`, and assigns them to `account`
      * @param   account The address of the token holder
@@ -25,5 +27,13 @@ contract NFT is ERC1155, Ownable {
         bytes memory data
     ) public onlyOwner() {
         _mint(account, id, amount, data);
+    }
+
+    function pause() public onlyOwner() {
+        _pause();
+    }
+
+    function unpause() public onlyOwner() {
+        _unpause();
     }
 }
