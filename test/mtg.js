@@ -134,12 +134,28 @@ contract('MTG', (accounts) => {
         const nft = await NFT.at(addressNFT);
         await mtg.mint(owner, 1, 100, text, { from: owner });
 
+        // Check pause
+
         await nft.setApprovalForAll(user1, true, {from: owner});
         await mtg.pause(1);
+        let isPaused = await mtg.isPaused(1);
+
+        assert(isPaused === true);
         await expectRevert(
             nft.safeTransferFrom(owner, user1, 1, 30, text, { from: owner }),
             'ERC1155Pausable: token transfer while paused'
         );
+
+        // Check unpause
+
+        await mtg.unpause(1);
+        isPaused = await mtg.isPaused(1);
+        await nft.safeTransferFrom(owner, user1, 1, 30, text, { from: owner });
+        const balance = await mtg.balanceOf(user1, 1);
+
+        assert(isPaused === false);
+        assert(balance.toNumber() === 30);
+
     });
 
     // Test to send ERC1155 tokens to MTG, and they should be lost
@@ -180,8 +196,6 @@ contract('MTG', (accounts) => {
             'ERC1155: transfer to non ERC1155Receiver implementer'
         );
     });
-
-    // PAUSABLE
     
 });
 

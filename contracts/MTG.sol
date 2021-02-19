@@ -89,16 +89,26 @@ contract MTG is Ownable {
         return tokens[_id].isApprovedForAll(owner, operator);
     }
 
-    // Pause
+    /**
+     * @notice  Emergency switch to pause all transfers
+     * @param   _id The ID of the token
+     */
     function pause(uint256 _id) external onlyOwner() {
         tokens[_id].pause();
     }
 
-    // Unpause
+    /**
+     * @notice  Emergency switch to unpause all transfers
+     * @param   _id The ID of the token
+     */
     function unpause(uint256 _id) external onlyOwner() {
         tokens[_id].unpause();
     }
 
+    /**
+     * @notice  Queries the Emergency switch status
+     * @return  True if the contract is paused, false if not
+     */
     function isPaused(uint256 _id) external view returns (bool) {
         return tokens[_id].paused();
     }
